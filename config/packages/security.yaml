@@ -1,0 +1,55 @@
+security:
+    encoders:
+        App\Entity\User:
+            algorithm: bcrypt
+
+    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    providers:
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        main:
+            # activate different ways to authenticate
+            pattern:    ^/
+            http_basic: ~
+           
+            provider: app_user_provider
+
+            form_login_ldap:                
+                login_path: /login
+                check_path: /login
+                service: Symfony\Component\Ldap\Ldap
+                dn_string: '{username}'
+                default_target_path: desktop
+            # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate
+            #http_basic: ~
+
+
+            anonymous: ~
+            # https://symfony.com/doc/current/security/form_login_setup.html
+            
+            logout:
+                path:   /logout
+                target: /
+
+            
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    role_hierarchy:
+        ROLE_ADMIN:       [ROLE_USER, ROLE_HELP_DESK, ROLE_USER]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+
+    access_control:        
+        - { path: ^/login$, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api/v1/changeuserpass, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/haslo, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/struktura$, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/address-book, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, role: ROLE_USER }
